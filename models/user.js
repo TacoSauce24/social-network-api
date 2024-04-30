@@ -1,12 +1,30 @@
 const { Schema, model } = require('mongoose');
-const Friend = require('./Friend');
 
-// Schema to create User model
+var validateEmail = function(email) {
+  var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  return re.test(email)
+};
+
 const userSchema = new Schema(
   {
-    username: String,
-    email: String,
-    thoughts: [Thoughts],
+    username: {
+      type: String,
+      unique: true,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+      validate: [validateEmail, 'Please fill a valid email address'],
+    },
+    thoughts: [
+      {
+      type: Schema.Types.ObjectId,
+      ref: 'thought',
+    },
+  ],
     friends: [ 
       {
         type: Schema.Types.ObjectId,
@@ -14,23 +32,14 @@ const userSchema = new Schema(
       },
     ],
   },
+
   {
-    // Mongoose supports two Schema options to transform Objects after querying MongoDb: toJSON and toObject.
-    // Here we are indicating that we want virtuals to be included with our response, overriding the default behavior
     toJSON: {
       virtuals: true,
     },
     id: false,
   }
 );
-
-// Create a virtual property `fullName` that gets and sets the user's full name
-userSchema
-  .virtual('userInfo')
-  // Getter
-  .get(function () {
-    return `${this.username} ${this.email} ${this.thoughts} ${this.friends}`;
-  });
 
 friendSchema
 .virtual('friendCount')
