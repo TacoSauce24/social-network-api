@@ -1,9 +1,9 @@
-const User = require('../models/user');
+const User = require('../models/User');
 
 module.exports = {
   async getUsers(req, res) {
     try {
-      const users = await User.find();
+      const users = await User.find().populate('thoughts').populate('friends');
       res.json(users);
     } catch (err) {
       res.status(500).json(err);
@@ -12,8 +12,7 @@ module.exports = {
 
   async getSingleUser(req, res) {
     try {
-      const user = await User.findOne({ _id: req.params.userId })
-        .select('-__v');
+      const user = await User.findOne({ _id: req.params.userId }).populate('friends').populate('thoughts');
 
       if (!user) {
         return res.status(404).json({ message: 'No user with that ID' });
@@ -85,9 +84,9 @@ module.exports = {
   
   async removeFriend(req, res) {
     try {
-      const user = await User.findOneAndRemove(
+      const user = await User.findOneAndUpdate(
         { _id: req.params.userId },
-        { $pull: { friends: req.params.friendId } },
+        { $pull: { friends: req.params.friendId} },
         { new: true }
       );
 
